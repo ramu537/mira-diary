@@ -1,8 +1,9 @@
-import { BarChart3, BookHeart, CalendarDays, Feather, LogOut, PenLine, User } from "lucide-react";
+import { BarChart3, BookHeart, CalendarDays, Feather, LibraryBig, LogOut, PenLine, User } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const navigation = [
   { to: "/", label: "Entry", icon: PenLine, end: true },
+  { to: "/experiences", label: "Experiences", icon: LibraryBig },
   { to: "/timeline", label: "Timeline", icon: CalendarDays },
   { to: "/insights", label: "Insights", icon: BarChart3 },
 ];
@@ -62,7 +63,7 @@ export default function AppShell({ user, onSignOut, loading, onToday, children }
 
           <div className="sidebar-note">
             <span><Feather size={16} /></span>
-            <div><strong>A few honest lines count</strong><small>No perfect record required</small></div>
+            <div><strong>Keep what mattered</strong><small>Daily notes and lived stories</small></div>
           </div>
         </div>
       </aside>
@@ -70,7 +71,7 @@ export default function AppShell({ user, onSignOut, loading, onToday, children }
       <div className="app-column">
         <header className="topbar">
           <div className="topbar-brand"><Brand /></div>
-          <span className="topbar-context">A private place to notice and remember</span>
+          <span className="topbar-context">Daily reflections and experiences worth keeping</span>
 
           <div className="topbar-actions">
             <button className="button button--primary topbar-action" type="button" onClick={onToday}>

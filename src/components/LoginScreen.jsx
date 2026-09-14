@@ -1,32 +1,32 @@
-import { BookHeart, CalendarHeart, History, Lock, Moon, PenLine, ShieldCheck, Sparkles } from "lucide-react";
+import { BookHeart, Compass, History, Lock, ShieldCheck, Sparkles, Users } from "lucide-react";
 
 export default function LoginScreen({ onLogin, error, loading }) {
   const HIGHLIGHTS = [
     {
       icon: BookHeart,
-      title: "Daily Reflections & Mood",
-      desc: "Log honest reflections and emotional wellness across steady, good, and difficult days.",
+      title: "Daily reflections",
+      desc: "Write the ordinary days honestly, with moods, highlights, gratitude, and gentle patterns.",
       color: "oklch(0.65 0.16 350 / 18%)",
       border: "oklch(0.65 0.16 350 / 35%)",
     },
     {
-      icon: Moon,
-      title: "Rest & Vitality Tracking",
-      desc: "Monitor restorative sleep hours and daily energy metrics with zero judgment or pressure.",
+      icon: Compass,
+      title: "Complete experiences",
+      desc: "Preserve trips, films, meals, activities, and personal memories moment by moment.",
       color: "oklch(0.65 0.16 253 / 18%)",
       border: "oklch(0.65 0.16 253 / 35%)",
     },
     {
       icon: History,
-      title: "'On This Day' Flashbacks",
-      desc: "Automatically resurface meaningful memories, highlights, and growth from previous years.",
+      title: "A library you can revisit",
+      desc: "Find meaningful days and rich experiences by date, type, place, or your own tags.",
       color: "oklch(0.68 0.16 296 / 18%)",
       border: "oklch(0.68 0.16 296 / 35%)",
     },
     {
-      icon: PenLine,
-      title: "Quiet, Autosaved & Private",
-      desc: "A few honest lines count. Debounced auto-save protects every word directly to your database.",
+      icon: Users,
+      title: "Private first, shareable by choice",
+      desc: "Keep everything personal, or publish a carefully selected snapshot by link or publicly.",
       color: "oklch(0.70 0.14 183 / 18%)",
       border: "oklch(0.70 0.14 183 / 35%)",
     },
@@ -54,7 +54,7 @@ export default function LoginScreen({ onLogin, error, loading }) {
 
           <div className="login-badge">
             <Sparkles size={14} className="login-badge__sparkle" />
-            <span>Dedicated Personal Journal &amp; Reflection Workspace</span>
+            <span>Personal diary &amp; experience library</span>
           </div>
 
           <h1 className="login-title">
@@ -63,7 +63,7 @@ export default function LoginScreen({ onLogin, error, loading }) {
           </h1>
 
           <p className="login-subtitle">
-            A private, quiet sanctuary for your thoughts, sleep, and emotional rhythm — fully connected to your Mira account.
+            A private place for everyday reflections and the fuller stories you will want to return to.
           </p>
         </header>
 
@@ -94,7 +94,7 @@ export default function LoginScreen({ onLogin, error, loading }) {
           <div className="login-card__header">
             <h2 className="login-card__title">Sign In to Continue</h2>
             <p className="login-card__subtitle">
-              Sign in with your Google account to access your diary entries and timeline
+              Sign in with your Google account to access your diary and experience library
             </p>
           </div>
 

@@ -18,11 +18,15 @@ async function readBody(response) {
   return text ? { message: text } : null;
 }
 
+export function apiUrl(path) {
+  return `${API_URL}${path}`;
+}
+
 export async function apiRequest(path, options = {}) {
   const token = accessTokenProvider ? await accessTokenProvider() : null;
   const headers = new Headers(options.headers);
   headers.set("Accept", "application/json");
-  if (options.body) headers.set("Content-Type", "application/json");
+  if (options.body && !(options.body instanceof FormData)) headers.set("Content-Type", "application/json");
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
   let response;
@@ -37,3 +41,19 @@ export async function apiRequest(path, options = {}) {
   return body;
 }
 
+export async function apiBlobRequest(path) {
+  const token = accessTokenProvider ? await accessTokenProvider() : null;
+  const headers = new Headers();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  let response;
+  try {
+    response = await fetch(apiUrl(path), { headers });
+  } catch {
+    throw new Error("Unable to load this image. Check your connection and try again.");
+  }
+  if (!response.ok) {
+    const body = await readBody(response);
+    throw new Error(body?.detail || body?.message || "The image could not be loaded.");
+  }
+  return response.blob();
+}
