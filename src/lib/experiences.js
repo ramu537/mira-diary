@@ -24,7 +24,7 @@ export function blankExperience(type = "TRAVEL") {
     experienceType: type, title: "", subtitle: "", summary: "", story: "", startDate: type === "TRAVEL" ? today : null,
     endDate: type === "TRAVEL" ? today : null, occurredOn: type === "TRAVEL" ? null : today, placeName: "", location: "",
     venue: "", category: "", companions: "", rating: null, recommendation: null, overallCost: null, currency: "INR",
-    state: "DRAFT", tags: [], moments: [], media: [], coverMediaId: null, version: null,
+    state: "DRAFT", visibility: "PRIVATE", tags: [], moments: [], media: [], coverMediaId: null, version: null,
   };
 }
 

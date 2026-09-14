@@ -6,6 +6,7 @@ test("blank experiences adapt their date fields to the selected type", () => {
   const travel = blankExperience("TRAVEL");
   const movie = blankExperience("MOVIE");
   assert.equal(travel.experienceType, "TRAVEL");
+  assert.equal(travel.visibility, "PRIVATE");
   assert.ok(travel.startDate);
   assert.equal(travel.occurredOn, null);
   assert.ok(movie.occurredOn);

@@ -12,7 +12,7 @@ function ExperienceCard({ item, onOpen }) {
     <span className="experience-card__visual">
       {cover ? <ExperienceImage experienceId={item.id} media={cover} /> : <span className="experience-card__placeholder"><Icon size={28} /><i /></span>}
       <span className="experience-type-pill"><Icon size={14} />{details.label}</span>
-      <span className={`visibility-pill visibility-pill--${item.visibility.toLowerCase()}`}>{item.visibility === "PRIVATE" ? <LockKeyhole size={13} /> : <Globe2 size={13} />}{item.visibility.toLowerCase()}</span>
+      <span className={`visibility-pill visibility-pill--${(item.visibility || "PRIVATE").toLowerCase()}`}>{item.visibility === "PUBLIC" ? <Globe2 size={13} /> : <LockKeyhole size={13} />}{(item.visibility || "PRIVATE").toLowerCase()}</span>
     </span>
     <span className="experience-card__body">
       <span className="experience-card__meta">{experienceDate(item)}{item.placeName ? ` · ${item.placeName}` : ""}</span>
