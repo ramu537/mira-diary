@@ -6,7 +6,7 @@ import { blankExperience, experiencePayload } from "../lib/experiences";
 const metadata = (item) => ({ momentId: item.momentId || null, caption: item.caption || "", altText: item.altText || "", sortOrder: item.sortOrder || 0 });
 const fingerprint = (item) => JSON.stringify({ ...experiencePayload(item), version: null, media: (item.media || []).map((image) => ({ id: image.id, ...metadata(image) })) });
 
-export function useExperienceEditor(id, initialType, manager, onNotice) {
+export function useExperienceEditor(id, initialType, manager, onNotice, publicationBusy = false) {
   const [draft, setDraft] = useState(() => blankExperience(initialType));
   const [saved, setSaved] = useState(null);
   const [loading, setLoading] = useState(Boolean(id));
@@ -20,7 +20,7 @@ export function useExperienceEditor(id, initialType, manager, onNotice) {
   const exitAllowed = useRef(false);
   value.current = draft; baseline.current = saved;
   const dirty = saved ? fingerprint(draft) !== fingerprint(saved) : fingerprint(draft) !== fingerprint(blankExperience(initialType));
-  const needsGuard = dirty || pendingCapture || busy || uploads.some((item) => item.status !== "done");
+  const needsGuard = dirty || pendingCapture || busy || publicationBusy || uploads.some((item) => item.status !== "done");
   const blocker = useBlocker(({ currentLocation, nextLocation }) => !exitAllowed.current && needsGuard
     && (currentLocation.pathname !== nextLocation.pathname || currentLocation.search !== nextLocation.search));
 
@@ -62,6 +62,8 @@ export function useExperienceEditor(id, initialType, manager, onNotice) {
   async function persist(next = value.current) {
     if (uncertainCreate) throw new Error("The earlier save may have succeeded. Check your library before creating another copy.");
     if (!next.title.trim()) throw new Error("Give this experience a name first. Everything else can wait.");
+    const unnamed = next.moments.findIndex((item) => !item.title.trim());
+    if (unnamed >= 0) throw new Error(`Add a name to entry ${unnamed + 1} in your notes or dishes before saving.`);
     const desiredMedia = next.media || [];
     let result;
     try { result = await manager.actions.save(next); }
@@ -125,7 +127,10 @@ export function useExperienceEditor(id, initialType, manager, onNotice) {
 
   const change = (patch) => { if (!lock.current) replace({ ...value.current, ...patch }); };
   const save = () => run(async () => { const next = await persist(); if (live.current) onNotice(next.publishedSlug ? "Private working copy saved. Your shared snapshot is unchanged." : "Experience saved privately."); return next; });
-  const capture = (moments, files = [], existingMomentId = null) => run(async () => {
+  const capture = (moments, files = [], existingMomentId = null, existingMomentIndex = null) => run(async () => {
+    if (existingMomentIndex != null && (!Number.isInteger(existingMomentIndex) || !value.current.moments[existingMomentIndex])) {
+      throw new Error("This photo’s entry is no longer available. Choose its entry again.");
+    }
     // Finish existing edits first. A failed metadata save must not make retrying a new moment duplicate it.
     const before = value.current.id && dirty ? await persist() : value.current;
     if (files.length + before.media.length > 30) throw new Error(`You can add ${Math.max(0, 30 - before.media.length)} more photos to this experience.`);
@@ -137,7 +142,10 @@ export function useExperienceEditor(id, initialType, manager, onNotice) {
     const next = { ...before, moments: [...before.moments, ...moments] };
     const result = await persist(next);
     if (!live.current) return result;
-    const momentId = existingMomentId || (moments.length ? result.moments[before.moments.length]?.id : null);
+    const momentId = existingMomentId || (existingMomentIndex != null ? result.moments[existingMomentIndex]?.id : moments.length ? result.moments[before.moments.length]?.id : null);
+    if (files.length && (existingMomentIndex != null || moments.length) && !momentId) {
+      throw new Error("Your text was saved, but the photo’s entry could not be confirmed. Reload the saved entry before choosing photos again.");
+    }
     const items = queuedFiles.map((item, index) => ({ ...item, momentId, sortOrder: result.media.length + index }));
     setUploads((current) => [...current.filter((item) => item.status !== "done"), ...items]);
     if (items.length) await uploadItems(items, result);

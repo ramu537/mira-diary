@@ -2,7 +2,7 @@ import { BarChart3, BookHeart, CalendarDays, Feather, LibraryBig, LogOut, PenLin
 import { Link, NavLink } from "react-router-dom";
 
 const navigation = [
-  { to: "/experiences", label: "Experiences", icon: LibraryBig },
+  { to: "/experiences", label: "Your journal", icon: LibraryBig },
   { to: "/entry", label: "Private diary", icon: PenLine },
   { to: "/timeline", label: "Timeline", icon: CalendarDays },
   { to: "/insights", label: "Insights", icon: BarChart3 },
@@ -71,11 +71,11 @@ export default function AppShell({ user, onSignOut, loading, children }) {
       <div className="app-column">
         <header className="topbar">
           <div className="topbar-brand"><Brand /></div>
-          <span className="topbar-context">Your experiences. Your story. Your choice to share.</span>
+          <span className="topbar-context">Journal</span>
 
           <div className="topbar-actions">
             <Link className="button button--primary topbar-action" to="/experiences/new">
-              <PenLine size={17} />New experience
+              <PenLine size={17} />New entry
             </Link>
 
             {user && (
