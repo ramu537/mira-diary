@@ -2,14 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { blankExperience, experiencePayload, sanitizeExperienceTags, typeDetails } from "../src/lib/experiences.js";
 
-test("blank experiences adapt their date fields to the selected type", () => {
+test("new experiences are private and never invent trip or transaction dates", () => {
   const travel = blankExperience("TRAVEL");
   const movie = blankExperience("MOVIE");
   assert.equal(travel.experienceType, "TRAVEL");
   assert.equal(travel.visibility, "PRIVATE");
-  assert.ok(travel.startDate);
+  assert.equal(travel.startDate, null);
   assert.equal(travel.occurredOn, null);
-  assert.ok(movie.occurredOn);
+  assert.equal(movie.occurredOn, null);
   assert.equal(movie.startDate, null);
 });
 
@@ -37,4 +37,16 @@ test("experience metadata covers every supported story type", () => {
     assert.equal(typeDetails(type).value, type);
   }
   assert.equal(sanitizeExperienceTags(["memory", "memory", "road-trip"]).length, 2);
+});
+
+test("trip chapter numbers use dates rather than a moment's position", () => {
+  const payload = experiencePayload({
+    ...blankExperience("TRAVEL"), startDate: "2026-09-01",
+    moments: [
+      { momentType: "MEMORY", title: "Dinner", momentDate: "2026-09-03", dayNumber: 1 },
+      { momentType: "MEMORY", title: "Walk", momentDate: "2026-09-03", dayNumber: 2 },
+      { momentType: "MEMORY", title: "Undated memory", momentDate: null, dayNumber: null },
+    ],
+  });
+  assert.deepEqual(payload.moments.map((moment) => moment.dayNumber), [3, 3, null]);
 });

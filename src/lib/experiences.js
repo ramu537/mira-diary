@@ -1,4 +1,5 @@
 import { Clapperboard, Compass, Sparkles, Ticket, UtensilsCrossed } from "lucide-react";
+import { dayNumber } from "./tripJournal.js";
 
 export const experienceTypes = [
   { value: "TRAVEL", label: "Travel", noun: "journey", icon: Compass, tone: "travel", prompt: "Where did the journey take you?" },
@@ -19,10 +20,9 @@ export function typeDetails(value) {
 }
 
 export function blankExperience(type = "TRAVEL") {
-  const today = new Date().toLocaleDateString("en-CA");
   return {
-    experienceType: type, title: "", subtitle: "", summary: "", story: "", startDate: type === "TRAVEL" ? today : null,
-    endDate: type === "TRAVEL" ? today : null, occurredOn: type === "TRAVEL" ? null : today, placeName: "", location: "",
+    experienceType: type, title: "", subtitle: "", summary: "", story: "", startDate: null,
+    endDate: null, occurredOn: null, placeName: "", location: "",
     venue: "", category: "", companions: "", rating: null, recommendation: null, overallCost: null, currency: "INR",
     state: "DRAFT", visibility: "PRIVATE", tags: [], moments: [], media: [], coverMediaId: null, version: null,
   };
@@ -50,16 +50,16 @@ export function experiencePayload(value) {
     companions: text(value.companions, 300), rating: numberOrNull(value.rating), recommendation: value.recommendation || null,
     overallCost: numberOrNull(value.overallCost), currency: text(value.currency || "INR", 3).toUpperCase(),
     state: value.state || "DRAFT", tags: sanitizeExperienceTags(value.tags), version: value.version,
-    moments: (value.moments || []).map((item, index) => ({ id: item.id || null, momentType: item.momentType,
+    moments: (value.moments || []).map((item) => ({ id: item.id || null, momentType: item.momentType,
       title: text(item.title, 160), body: text(item.body, 20000), momentDate: item.momentDate || null,
-      dayNumber: value.experienceType === "TRAVEL" && item.momentType === "DAY" ? index + 1 : numberOrNull(item.dayNumber), placeName: text(item.placeName, 180), location: text(item.location, 300),
+      dayNumber: value.experienceType === "TRAVEL" ? (item.momentDate ? dayNumber(value.startDate, item.momentDate) : numberOrNull(item.dayNumber)) : null, placeName: text(item.placeName, 180), location: text(item.location, 300),
       rating: numberOrNull(item.rating), recommendation: item.recommendation || null, cost: numberOrNull(item.cost),
       currency: text(item.currency || value.currency || "INR", 3).toUpperCase() })),
   };
 }
 
 export function experienceDate(value) {
-  const date = value.startDate || value.occurredOn || value.createdAt?.slice(0, 10);
+  const date = value.startDate || value.occurredOn;
   if (!date) return "Date not added";
   return new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric" })
     .format(new Date(`${date}T12:00:00`));

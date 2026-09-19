@@ -1,8 +1,9 @@
-import { Archive, ArrowRight, Globe2, Image as ImageIcon, LockKeyhole, Plus, Search, Sparkles } from "lucide-react";
+import { Archive, ArrowRight, Globe2, Image as ImageIcon, Link2, LockKeyhole, Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ExperienceImage from "../components/ExperienceImage";
 import { experienceDate, experienceTypes, typeDetails } from "../lib/experiences";
+import { memoryPassport } from "../lib/tripJournal";
 
 function ExperienceCard({ item, onOpen }) {
   const details = typeDetails(item.experienceType);
@@ -12,12 +13,12 @@ function ExperienceCard({ item, onOpen }) {
     <span className="experience-card__visual">
       {cover ? <ExperienceImage experienceId={item.id} media={cover} /> : <span className="experience-card__placeholder"><Icon size={28} /><i /></span>}
       <span className="experience-type-pill"><Icon size={14} />{details.label}</span>
-      <span className={`visibility-pill visibility-pill--${(item.visibility || "PRIVATE").toLowerCase()}`}>{item.visibility === "PUBLIC" ? <Globe2 size={13} /> : <LockKeyhole size={13} />}{(item.visibility || "PRIVATE").toLowerCase()}</span>
+      <span className={`visibility-pill visibility-pill--${(item.visibility || "PRIVATE").toLowerCase()}`}>{item.visibility === "PUBLIC" ? <Globe2 size={13} /> : item.visibility === "UNLISTED" ? <Link2 size={13} /> : <LockKeyhole size={13} />}{item.visibility === "PUBLIC" ? "Public" : item.visibility === "UNLISTED" ? "Link-only" : "Private"}</span>
     </span>
     <span className="experience-card__body">
       <span className="experience-card__meta">{experienceDate(item)}{item.placeName ? ` · ${item.placeName}` : ""}</span>
       <strong>{item.title}</strong>
-      <span>{item.summary || item.subtitle || "A memory waiting for its fuller story."}</span>
+      <span>{item.summary || item.subtitle || item.moments?.[0]?.body || "A small moment is a story worth keeping."}</span>
       <small><span>{item.moments?.length || 0} moments</span><span>{item.media?.length || 0} photos</span><ArrowRight size={16} /></small>
     </span>
   </button>;
@@ -31,16 +32,21 @@ export default function ExperiencesPage({ manager }) {
   const items = useMemo(() => manager.experiences.filter((item) => {
     const matchesState = archived ? item.state === "ARCHIVED" : item.state !== "ARCHIVED";
     const matchesType = type === "ALL" || item.experienceType === type;
-    const haystack = `${item.title} ${item.subtitle} ${item.summary} ${item.story} ${item.placeName} ${(item.tags || []).join(" ")}`.toLowerCase();
+    const haystack = `${item.title} ${item.subtitle} ${item.summary} ${item.story} ${item.placeName} ${(item.tags || []).join(" ")} ${(item.moments || []).map((moment) => `${moment.title} ${moment.body} ${moment.placeName}`).join(" ")}`.toLowerCase();
     return matchesState && matchesType && (!search.trim() || haystack.includes(search.trim().toLowerCase()));
   }), [archived, manager.experiences, search, type]);
 
+  const resume = manager.experiences.find((item) => item.experienceType === "TRAVEL" && item.state !== "ARCHIVED");
+  const resumeCover = resume && (resume.media?.find((item) => item.id === resume.coverMediaId) || resume.media?.[0]);
   return <div className="page-stack experiences-page">
-    <header className="experience-hero panel">
-      <div><span className="eyebrow"><Sparkles size={14} />Your lived library</span><h1>Keep the whole experience.</h1><p>Trips, films, food, activities, and the ordinary memories that deserve more than a camera roll.</p></div>
-      <div className="experience-hero__actions"><button className="button button--ghost" type="button" onClick={() => navigate("/explore")}><Globe2 size={17} />Explore stories</button><button className="button button--primary" type="button" onClick={() => navigate("/experiences/new")}><Plus size={18} />New experience</button></div>
-      <div className="experience-hero__stats"><span><strong>{manager.experiences.filter((item) => item.state !== "ARCHIVED").length}</strong>stories</span><span><strong>{manager.experiences.reduce((sum, item) => sum + (item.moments?.length || 0), 0)}</strong>moments</span><span><strong>{manager.experiences.filter((item) => item.visibility !== "PRIVATE").length}</strong>shared</span></div>
-    </header>
+    <header className="journal-library-heading"><div><span className="eyebrow">Your lived library</span><h1>Little moments. Whole stories.</h1><p>Keep it for yourself, or let someone see it through your eyes.</p></div><button className="button button--ghost" type="button" onClick={() => navigate("/explore")}><Globe2 size={17} />Explore stories</button></header>
+    <section className="journal-start-grid">
+      <div className={`journal-resume panel ${resumeCover ? "has-photo" : ""}`}>
+        {resumeCover && <ExperienceImage experienceId={resume.id} media={resumeCover} eager />}
+        <div><span className="eyebrow">{resume ? "Pick up where you left off" : "Your next chapter"}</span><h2>{resume?.title || "Where did the journey take you?"}</h2><p>{resume ? `${resume.moments?.length || 0} moments kept · ${memoryPassport(resume).filter((stamp) => stamp.earned).length} memory milestones` : "A trip name and one memory are enough to begin."}</p><button className="button button--primary" type="button" onClick={() => navigate(resume ? `/experiences/${resume.id}` : "/experiences/new?type=TRAVEL")}>{resume ? "Continue your trip" : "Start a trip"}<ArrowRight size={17} /></button></div>
+      </div>
+      <div className="journal-start-actions panel"><span className="eyebrow"><LockKeyhole size={14} />Private until you share</span><h2>What are we keeping?</h2>{experienceTypes.map((item) => { const Icon = item.icon; return <button key={item.value} type="button" onClick={() => navigate(`/experiences/new?type=${item.value}`)}><Icon size={20} /><span>{item.label === "Travel" ? "A trip or getaway" : `${item.label} experience`}</span><Plus size={16} /></button>; })}</div>
+    </section>
 
     <section className="experience-toolbar" aria-label="Filter experiences">
       <div className="experience-tabs"><button className={type === "ALL" ? "is-active" : ""} type="button" onClick={() => setType("ALL")}>All</button>{experienceTypes.map((item) => <button key={item.value} className={type === item.value ? "is-active" : ""} type="button" onClick={() => setType(item.value)}>{item.label}</button>)}</div>

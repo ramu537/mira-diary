@@ -27,6 +27,7 @@ export const experienceApi = {
   removeMedia: (id, mediaId) => apiRequest(`/experiences/${id}/media/${mediaId}`, { method: "DELETE" }),
   setCover: (id, mediaId) => apiRequest(`/experiences/${id}/cover/${mediaId}`, { method: "PUT" }),
   publication: (id) => apiRequest(`/experiences/${id}/publication`),
+  preview: (id, body) => apiRequest(`/experiences/${id}/publication/preview`, { method: "POST", body: JSON.stringify(body) }),
   publish: (id, body) => apiRequest(`/experiences/${id}/publication`, { method: "PUT", body: JSON.stringify(body) }),
   unpublish: (id) => apiRequest(`/experiences/${id}/publication`, { method: "DELETE" }),
 };

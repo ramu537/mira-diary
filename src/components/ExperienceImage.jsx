@@ -14,6 +14,7 @@ export default function ExperienceImage({ experienceId, slug, media, className =
     }
     let active = true;
     let objectUrl = "";
+    setSource("");
     setFailed(false);
     apiBlobRequest(`/experiences/${experienceId}/media/${media.id}/content`)
       .then((blob) => {

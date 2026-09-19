@@ -1,9 +1,9 @@
 import { BarChart3, BookHeart, CalendarDays, Feather, LibraryBig, LogOut, PenLine, User } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
 const navigation = [
-  { to: "/", label: "Entry", icon: PenLine, end: true },
   { to: "/experiences", label: "Experiences", icon: LibraryBig },
+  { to: "/entry", label: "Private diary", icon: PenLine },
   { to: "/timeline", label: "Timeline", icon: CalendarDays },
   { to: "/insights", label: "Insights", icon: BarChart3 },
 ];
@@ -12,7 +12,7 @@ function Brand() {
   return (
     <div className="brand" aria-label="Mira Diary Manager">
       <span className="brand-mark" aria-hidden="true"><BookHeart size={21} strokeWidth={2.1} /></span>
-      <span className="brand-copy"><strong>Mira</strong><small>Diary</small></span>
+      <span className="brand-copy"><strong>Mira</strong><small>Experiences</small></span>
     </div>
   );
 }
@@ -30,7 +30,7 @@ function Navigation({ mobile = false }) {
   );
 }
 
-export default function AppShell({ user, onSignOut, loading, onToday, children }) {
+export default function AppShell({ user, onSignOut, loading, children }) {
   return (
     <div className="app-frame">
       <aside className="sidebar">
@@ -71,12 +71,12 @@ export default function AppShell({ user, onSignOut, loading, onToday, children }
       <div className="app-column">
         <header className="topbar">
           <div className="topbar-brand"><Brand /></div>
-          <span className="topbar-context">Daily reflections and experiences worth keeping</span>
+          <span className="topbar-context">Your experiences. Your story. Your choice to share.</span>
 
           <div className="topbar-actions">
-            <button className="button button--primary topbar-action" type="button" onClick={onToday}>
-              <PenLine size={17} />Today’s entry
-            </button>
+            <Link className="button button--primary topbar-action" to="/experiences/new">
+              <PenLine size={17} />New experience
+            </Link>
 
             {user && (
               <div className="topbar-user">

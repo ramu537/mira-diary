@@ -1,4 +1,4 @@
-@layer reset, tokens, base, components, experiences, responsive;
+@layer reset, tokens, base, components, experiences, journal, responsive;
 
 @layer reset {
   *, *::before, *::after { box-sizing: border-box; }

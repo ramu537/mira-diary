@@ -73,7 +73,7 @@ export default function App() {
   const showError = useCallback((error) => setToast({ tone: "error", message: error?.message || "The entry could not be saved." }), []);
   const showNotice = useCallback((value, tone = "success") => setToast({ tone, message: typeof value === "string" ? value : value?.message || "The request could not be completed." }), []);
 
-  function openDate(date) { manager.actions.selectDate(date, showError); navigate("/"); }
+  function openDate(date) { manager.actions.selectDate(date, showError); navigate("/entry"); }
   async function deleteEntry(date) {
     try { await manager.actions.deleteEntry(date); setToast({ tone: "success", message: "Diary entry deleted." }); return true; }
     catch (error) { showError(error); return false; }
@@ -94,12 +94,12 @@ export default function App() {
 
   const entryProps = { entry: manager.currentEntry, entries: manager.entries, selectedDate: manager.selectedDate, today: manager.today, saveState: manager.saveState, deleting: manager.deleting, onDateChange: openDate, onChange: (patch) => manager.actions.updateEntry(manager.selectedDate, patch, showError), onFlush: () => manager.actions.flushEntry(manager.selectedDate, showError), onDelete: deleteEntry };
   let content;
-  const inExperiences = location.pathname.startsWith("/experiences");
-  if (inExperiences && !experienceManager.ready && experienceManager.loading) content = <LoadingState />;
+  const inExperiences = location.pathname === "/" || location.pathname.startsWith("/experiences");
+  if (inExperiences && !experienceManager.ready && !experienceManager.error) content = <LoadingState />;
   else if (inExperiences && !experienceManager.ready && experienceManager.error) content = <ErrorState message={experienceManager.error} onRetry={experienceManager.retry} />;
   else if (!inExperiences && !manager.ready && manager.loading) content = <LoadingState />;
   else if (!inExperiences && !manager.ready && manager.loadError) content = <ErrorState message={manager.loadError} onRetry={manager.retry} />;
-  else content = <Routes><Route path="/" element={<EntryPage {...entryProps} />} /><Route path="/timeline" element={<TimelinePage entries={manager.entries} today={manager.today} onOpen={openDate} />} /><Route path="/insights" element={<InsightsPage entries={manager.entries} today={manager.today} />} /><Route path="/experiences" element={<ExperiencesPage manager={experienceManager} />} /><Route path="/experiences/new" element={<ExperienceEditorPage manager={experienceManager} onNotice={showNotice} />} /><Route path="/experiences/:id" element={<ExperienceEditorPage manager={experienceManager} onNotice={showNotice} />} /><Route path="*" element={<Navigate to="/" replace />} /></Routes>;
+  else content = <Routes><Route path="/" element={<Navigate to="/experiences" replace />} /><Route path="/entry" element={<EntryPage {...entryProps} />} /><Route path="/timeline" element={<TimelinePage entries={manager.entries} today={manager.today} onOpen={openDate} />} /><Route path="/insights" element={<InsightsPage entries={manager.entries} today={manager.today} />} /><Route path="/experiences" element={<ExperiencesPage key={user.uid} manager={experienceManager} />} /><Route path="/experiences/new" element={<ExperienceEditorPage manager={experienceManager} onNotice={showNotice} />} /><Route path="/experiences/:id" element={<ExperienceEditorPage manager={experienceManager} onNotice={showNotice} />} /><Route path="*" element={<Navigate to="/" replace />} /></Routes>;
 
   return (
     <>
