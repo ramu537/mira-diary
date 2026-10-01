@@ -4,6 +4,8 @@ import { onAuthStateChanged } from "firebase/auth";
 import { configureAccessTokenProvider } from "./api/client";
 import AppShell from "./components/AppShell";
 import DomainIntelligenceDialog from "./components/DomainIntelligenceDialog";
+import AiDiaryCaptureModal from "./components/AiDiaryCaptureModal";
+import AiMemorySearchDialog from "./components/AiMemorySearchDialog";
 import LoginScreen from "./components/LoginScreen";
 import { ErrorState, LoadingState } from "./components/PageState";
 import Toast from "./components/Toast";
@@ -73,9 +75,22 @@ export default function App() {
   const experienceManager = useExperienceManager(user);
   const [toast, setToast] = useState(null);
   const [intelligenceOpen, setIntelligenceOpen] = useState(false);
+  const [aiCaptureOpen, setAiCaptureOpen] = useState(false);
+  const [aiSearchOpen, setAiSearchOpen] = useState(false);
   const closeToast = useCallback(() => setToast(null), []);
   const showError = useCallback((error) => setToast({ tone: "error", message: error?.message || "The entry could not be saved." }), []);
   const showNotice = useCallback((value, tone = "success") => setToast({ tone, message: typeof value === "string" ? value : value?.message || "The request could not be completed." }), []);
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setAiSearchOpen((prev) => !prev);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   function openDate(date) { manager.actions.selectDate(date, showError); navigate("/entry"); }
   async function deleteEntry(date) {
@@ -107,10 +122,33 @@ export default function App() {
 
   return (
     <>
-      <AppShell user={user} onSignOut={handleSignOut} loading={manager.loading || experienceManager.loading} onToday={() => openDate(manager.today)} onOpenIntelligence={() => setIntelligenceOpen(true)} intelligenceLabel={inExperiences ? "Experience intelligence" : "Diary intelligence"}>
+      <AppShell
+        user={user}
+        onSignOut={handleSignOut}
+        loading={manager.loading || experienceManager.loading}
+        onToday={() => openDate(manager.today)}
+        onOpenIntelligence={() => setIntelligenceOpen(true)}
+        onOpenAiCapture={() => setAiCaptureOpen(true)}
+        onOpenAiSearch={() => setAiSearchOpen(true)}
+        intelligenceLabel={inExperiences ? "Experience intelligence" : "Diary intelligence"}
+      >
         {content}
       </AppShell>
       <DomainIntelligenceDialog key={inExperiences ? "experiences" : "diary"} open={intelligenceOpen} title={inExperiences ? "Experience intelligence" : "Diary intelligence"} description={inExperiences ? "See coverage, unfinished stories and sharing readiness without exposing your story text." : "Reflect on consistency and self-ratings without turning personal writing into a diagnosis."} date={inExperiences ? manager.today : manager.selectedDate} load={inExperiences ? experienceApi.analyze : diaryApi.analyze} refresh={inExperiences ? experienceApi.refreshAnalysis : diaryApi.refreshAnalysis} onClose={() => setIntelligenceOpen(false)} />
+      <AiDiaryCaptureModal
+        open={aiCaptureOpen}
+        initialDate={manager.selectedDate || manager.today}
+        onClose={() => setAiCaptureOpen(false)}
+        onSuccess={(msg) => {
+          manager.retry();
+          setToast({ tone: "success", message: msg });
+        }}
+      />
+      <AiMemorySearchDialog
+        open={aiSearchOpen}
+        onClose={() => setAiSearchOpen(false)}
+        onSelectDate={(d) => openDate(d)}
+      />
       <Toast toast={toast} onClose={closeToast} />
     </>
   );
