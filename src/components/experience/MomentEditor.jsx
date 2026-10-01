@@ -20,7 +20,7 @@ export default function MomentEditor({ editor, index, variant = "note", onNotice
     if (moment.id && draft.media.some((image) => image.momentId === moment.id)) {
       onNotice("Move or delete the attached photos in Photos, then save before removing this entry.", "error"); return;
     }
-    if (window.confirm(`Remove ${moment.title || "this entry"}? This takes effect when you save.`)) change({ moments: draft.moments.filter((_, i) => i !== index) });
+    change({ moments: draft.moments.filter((_, i) => i !== index) });
   }
   return <article className={`writer-moment writer-moment--${variant}`}>
     <header><span>{isDish ? "On the table" : labels[moment.momentType] || "Note"}</span><div>

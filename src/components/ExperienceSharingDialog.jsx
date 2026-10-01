@@ -57,7 +57,7 @@ export default function ExperienceSharingDialog({ experience, onClose, onPublish
     finally { lock.current = false; if (mounted.current) setBusy(false); }
   }
   async function unpublish() {
-    if (lock.current || !window.confirm("Make this story private? The shared link will stop working. Downloaded copies cannot be recalled.")) return;
+    if (lock.current) return;
     lock.current = true; setBusy(true); setError("");
     try {
       await experienceApi.unpublish(experience.id);

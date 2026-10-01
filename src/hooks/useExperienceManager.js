@@ -25,6 +25,16 @@ export function useExperienceManager(user) {
     void load();
     return () => { sequence.current += 1; };
   }, [uid, load]);
+  useEffect(() => {
+    if (!uid) return undefined;
+    const sync = () => { if (document.visibilityState === "visible") void load(); };
+    window.addEventListener("focus", sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      window.removeEventListener("focus", sync);
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, [uid, load]);
   const merge = useCallback((item) => {
     if (activeUser.current !== uid) return item;
     sequence.current += 1;

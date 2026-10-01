@@ -10,6 +10,8 @@ function params(filters = {}) {
 }
 
 export const experienceApi = {
+  analyze: (date) => apiRequest(`/experiences/analysis?${new URLSearchParams({ date })}`),
+  refreshAnalysis: (date) => apiRequest("/experiences/analysis/refresh", { method: "POST", body: JSON.stringify({ date }) }),
   list: (filters) => apiRequest(`/experiences${params(filters)}`),
   get: (id) => apiRequest(`/experiences/${id}`),
   create: (body) => apiRequest("/experiences", { method: "POST", body: JSON.stringify(body) }),

@@ -88,6 +88,19 @@ export function useDiaryManager(user = null) {
     };
   }, [load, user]);
 
+  useEffect(() => {
+    if (!user) return undefined;
+    const sync = () => {
+      if (document.visibilityState === "visible" && timers.current.size === 0 && queues.current.size === 0) void load();
+    };
+    window.addEventListener("focus", sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      window.removeEventListener("focus", sync);
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, [user, load]);
+
   const updateEntry = useCallback((date, patch, onError) => {
     const current = entriesRef.current.find((entry) => entry.entryDate === date) || blankEntry(date);
     const next = { ...current, ...patch };

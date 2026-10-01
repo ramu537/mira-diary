@@ -1,4 +1,4 @@
-import { BarChart3, BookHeart, CalendarDays, Feather, LibraryBig, LogOut, PenLine, User } from "lucide-react";
+import { BarChart3, BookHeart, CalendarDays, Feather, LibraryBig, LogOut, PenLine, Sparkles, User } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 
 const navigation = [
@@ -30,7 +30,7 @@ function Navigation({ mobile = false }) {
   );
 }
 
-export default function AppShell({ user, onSignOut, loading, children }) {
+export default function AppShell({ user, onSignOut, loading, onOpenIntelligence, intelligenceLabel = "Journal intelligence", children }) {
   return (
     <div className="app-frame">
       <aside className="sidebar">
@@ -74,6 +74,7 @@ export default function AppShell({ user, onSignOut, loading, children }) {
           <span className="topbar-context">Journal</span>
 
           <div className="topbar-actions">
+            <button className="icon-button topbar-intelligence" type="button" onClick={onOpenIntelligence} aria-label={`Open ${intelligenceLabel.toLowerCase()}`} title={intelligenceLabel}><Sparkles size={18} /></button>
             <Link className="button button--primary topbar-action" to="/experiences/new">
               <PenLine size={17} />New entry
             </Link>

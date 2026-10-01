@@ -3,12 +3,15 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-
 import { onAuthStateChanged } from "firebase/auth";
 import { configureAccessTokenProvider } from "./api/client";
 import AppShell from "./components/AppShell";
+import DomainIntelligenceDialog from "./components/DomainIntelligenceDialog";
 import LoginScreen from "./components/LoginScreen";
 import { ErrorState, LoadingState } from "./components/PageState";
 import Toast from "./components/Toast";
 import { auth, googleProvider, signInWithPopup, signOut } from "./config/firebase";
 import { useDiaryManager } from "./hooks/useDiaryManager";
 import { useExperienceManager } from "./hooks/useExperienceManager";
+import { diaryApi } from "./api/diary";
+import { experienceApi } from "./api/experiences";
 import EntryPage from "./pages/EntryPage";
 import InsightsPage from "./pages/InsightsPage";
 import TimelinePage from "./pages/TimelinePage";
@@ -69,6 +72,7 @@ export default function App() {
   const manager = useDiaryManager(user);
   const experienceManager = useExperienceManager(user);
   const [toast, setToast] = useState(null);
+  const [intelligenceOpen, setIntelligenceOpen] = useState(false);
   const closeToast = useCallback(() => setToast(null), []);
   const showError = useCallback((error) => setToast({ tone: "error", message: error?.message || "The entry could not be saved." }), []);
   const showNotice = useCallback((value, tone = "success") => setToast({ tone, message: typeof value === "string" ? value : value?.message || "The request could not be completed." }), []);
@@ -103,9 +107,10 @@ export default function App() {
 
   return (
     <>
-      <AppShell user={user} onSignOut={handleSignOut} loading={manager.loading || experienceManager.loading} onToday={() => openDate(manager.today)}>
+      <AppShell user={user} onSignOut={handleSignOut} loading={manager.loading || experienceManager.loading} onToday={() => openDate(manager.today)} onOpenIntelligence={() => setIntelligenceOpen(true)} intelligenceLabel={inExperiences ? "Experience intelligence" : "Diary intelligence"}>
         {content}
       </AppShell>
+      <DomainIntelligenceDialog key={inExperiences ? "experiences" : "diary"} open={intelligenceOpen} title={inExperiences ? "Experience intelligence" : "Diary intelligence"} description={inExperiences ? "See coverage, unfinished stories and sharing readiness without exposing your story text." : "Reflect on consistency and self-ratings without turning personal writing into a diagnosis."} date={inExperiences ? manager.today : manager.selectedDate} load={inExperiences ? experienceApi.analyze : diaryApi.analyze} refresh={inExperiences ? experienceApi.refreshAnalysis : diaryApi.refreshAnalysis} onClose={() => setIntelligenceOpen(false)} />
       <Toast toast={toast} onClose={closeToast} />
     </>
   );
