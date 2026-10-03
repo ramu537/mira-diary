@@ -1,3 +1,4 @@
+import ThemeControl from "./ThemeControl";
 import { BarChart3, BookHeart, CalendarDays, Feather, LibraryBig, LogOut, PenLine, Search, Sparkles, User } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 
@@ -74,9 +75,10 @@ export default function AppShell({ user, onSignOut, loading, onOpenIntelligence,
           <span className="topbar-context">Journal</span>
 
           <div className="topbar-actions">
+            <ThemeControl />
             <button className="icon-button" type="button" onClick={onOpenAiSearch} aria-label="Search memory" title="AI Vector Memory Search (Ctrl+K)"><Search size={18} /></button>
             <button className="icon-button topbar-intelligence" type="button" onClick={onOpenIntelligence} aria-label={`Open ${intelligenceLabel.toLowerCase()}`} title={intelligenceLabel}><Sparkles size={18} /></button>
-            <button className="button button--ghost" type="button" onClick={onOpenAiCapture} aria-label="AI Reflection" title="Quick AI reflection" style={{ gap: "0.375rem", display: "inline-flex", alignItems: "center" }}>
+            <button className="button button--ghost topbar-capture" type="button" onClick={onOpenAiCapture} aria-label="AI Reflection" title="Quick AI reflection">
               <Sparkles size={16} /> <span>AI Note</span>
             </button>
             <Link className="button button--primary topbar-action" to="/experiences/new">
@@ -108,8 +110,8 @@ export default function AppShell({ user, onSignOut, loading, onOpenIntelligence,
 
         <main className="main-content">{children}</main>
         <Navigation mobile />
-        <div style={{ position: "fixed", bottom: "1.25rem", right: "1.25rem", display: "flex", gap: "0.75rem", zIndex: 40 }} className="mobile-only-actions">
-          <button className="mobile-add" type="button" onClick={onOpenAiCapture} aria-label="AI Reflection" style={{ background: "var(--surface-raised, #ffffff)", color: "var(--accent-strong, #3b82f6)", border: "1px solid var(--border-default, #cbd5e1)" }}>
+        <div className="mobile-only-actions">
+          <button className="mobile-add mobile-capture" type="button" onClick={onOpenAiCapture} aria-label="AI Reflection">
             <Sparkles size={22} strokeWidth={2.2} />
           </button>
         </div>

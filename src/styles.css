@@ -74,15 +74,14 @@
     --shadow-lg: 0 30px 85px oklch(12% 0.04 305 / 23%);
     --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
+  :root[data-theme="dark"] {
       --ink-strong: oklch(95% 0.012 305); --ink: oklch(82% 0.018 305); --ink-muted: oklch(68% 0.023 305); --ink-faint: oklch(57% 0.023 305); --ink-inverse: oklch(98% 0.008 305);
       --canvas: oklch(16.5% 0.026 305); --surface: oklch(21% 0.03 305); --surface-soft: oklch(24% 0.032 305); --surface-muted: oklch(29% 0.034 305); --surface-glass: oklch(20% 0.03 305 / 85%); --surface-inverse: oklch(23% 0.055 305);
       --line: oklch(34% 0.03 305); --line-soft: oklch(29% 0.027 305); --accent: oklch(72% 0.15 321); --accent-strong: oklch(78% 0.12 321); --accent-soft: oklch(29% 0.07 321); --accent-glow: oklch(69% 0.16 321 / 16%);
       --success-soft: oklch(27% 0.05 158); --warning-soft: oklch(29% 0.052 75); --danger-soft: oklch(28% 0.07 25);
       --shadow-sm: 0 1px 2px oklch(5% 0.02 305 / 20%), 0 12px 34px oklch(5% 0.02 305 / 17%); --shadow-md: 0 22px 58px oklch(5% 0.02 305 / 30%); --shadow-lg: 0 30px 85px oklch(5% 0.02 305 / 46%);
-    }
-  }
+      }
+
 }
 
 @layer base {

@@ -1,3 +1,4 @@
+import FloatingAssistant from "./components/FloatingAssistant";
 import { useCallback, useEffect, useState } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
@@ -100,7 +101,7 @@ export default function App() {
 
   useEffect(() => {
     const date = new URLSearchParams(location.search).get("date");
-    if (date && /^\\d{4}-\\d{2}-\\d{2}$/.test(date) && manager.ready)
+    if (date && /^\d{4}-\d{2}-\d{2}$/.test(date) && manager.ready)
       manager.actions.selectDate(date, showError);
   }, [location.search, manager.ready, showError]);
 
@@ -157,6 +158,7 @@ export default function App() {
         onClose={() => setAiSearchOpen(false)}
         onSelectDate={(d) => openDate(d)}
       />
+      <FloatingAssistant domain={inExperiences ? "experiences" : "diary"} userId={user.uid} date={inExperiences ? manager.today : manager.selectedDate} />
       <Toast toast={toast} onClose={closeToast} />
     </>
   );

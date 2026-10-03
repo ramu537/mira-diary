@@ -12,8 +12,7 @@
     --journal-focus: color-mix(in oklch, var(--accent) 65%, transparent);
     --shadow-sm: 0 1px 3px oklch(20% .01 260 / 4%);
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
+  :root[data-theme="dark"] {
       --ink-strong: oklch(95% .005 260); --ink: oklch(85% .008 260); --ink-muted: oklch(70% .012 260);
       --ink-faint: oklch(60% .012 260); --ink-inverse: oklch(98% .005 260);
       --canvas: oklch(18% .008 260); --surface: oklch(22% .009 260); --surface-soft: oklch(25% .01 260);
@@ -21,8 +20,8 @@
       --line: oklch(39% .012 260); --line-soft: oklch(30% .009 260);
       --accent: oklch(75% .11 255); --accent-strong: oklch(81% .09 255); --accent-soft: oklch(29% .038 255); --accent-glow: transparent;
       --shadow-sm: 0 1px 3px oklch(10% 0 0 / 10%);
-    }
-  }
+      }
+
 }
 @layer journal {
   body, .public-shell { background: var(--canvas); }
