@@ -140,7 +140,7 @@ export default function App() {
       >
         {content}
       </AppShell>
-      <DomainIntelligenceDialog revision={inExperiences ? experienceManager.experiences : manager.entries} key={inExperiences ? "experiences" : "diary"} open={intelligenceOpen} title={inExperiences ? "Experience intelligence" : "Diary intelligence"} description={inExperiences ? "See coverage, unfinished stories and sharing readiness without exposing your story text." : "Reflect on consistency and self-ratings without turning personal writing into a diagnosis."} date={inExperiences ? manager.today : manager.selectedDate} load={inExperiences ? experienceApi.analyze : diaryApi.analyze} refresh={inExperiences ? experienceApi.refreshAnalysis : diaryApi.refreshAnalysis} onClose={() => setIntelligenceOpen(false)} />
+      <DomainIntelligenceDialog domain={inExperiences ? "experiences" : "diary"} userId={user.uid} revision={inExperiences ? experienceManager.experiences : manager.entries} key={inExperiences ? "experiences" : "diary"} open={intelligenceOpen} title={inExperiences ? "Experience intelligence" : "Diary intelligence"} description={inExperiences ? "See coverage, unfinished stories and sharing readiness without exposing your story text." : "Reflect on consistency and self-ratings without turning personal writing into a diagnosis."} date={inExperiences ? manager.today : manager.selectedDate} load={inExperiences ? experienceApi.analyze : diaryApi.analyze} refresh={inExperiences ? experienceApi.refreshAnalysis : diaryApi.refreshAnalysis} onClose={() => setIntelligenceOpen(false)} />
       <AiDiaryCaptureModal
         open={aiCaptureOpen}
         initialDate={manager.selectedDate || manager.today}
