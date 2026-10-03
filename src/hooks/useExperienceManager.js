@@ -28,9 +28,11 @@ export function useExperienceManager(user) {
   useEffect(() => {
     if (!uid) return undefined;
     const sync = () => { if (document.visibilityState === "visible") void load(); };
+    const timer = window.setInterval(sync, 30000);
     window.addEventListener("focus", sync);
     document.addEventListener("visibilitychange", sync);
     return () => {
+      window.clearInterval(timer);
       window.removeEventListener("focus", sync);
       document.removeEventListener("visibilitychange", sync);
     };

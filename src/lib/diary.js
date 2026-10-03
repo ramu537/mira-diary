@@ -41,6 +41,8 @@ export function entryPayload(entry) {
   const energy = entry.energy == null ? null : Math.min(5, Math.max(1, Number(entry.energy)));
   const sleep = entry.sleepHours == null || entry.sleepHours === "" ? null : Math.min(24, Math.max(0, Number(entry.sleepHours)));
   return {
+    aiContentAllowed: Boolean(entry.aiContentAllowed),
+    expectedUpdatedAt: entry.updatedAt || null,
     mood: moods.some((mood) => mood.value === entry.mood) ? entry.mood : null,
     energy: Number.isInteger(energy) ? energy : null,
     sleepHours: Number.isFinite(sleep) ? sleep : null,

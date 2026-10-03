@@ -98,6 +98,12 @@ export default function App() {
     catch (error) { showError(error); return false; }
   }
 
+  useEffect(() => {
+    const date = new URLSearchParams(location.search).get("date");
+    if (date && /^\\d{4}-\\d{2}-\\d{2}$/.test(date) && manager.ready)
+      manager.actions.selectDate(date, showError);
+  }, [location.search, manager.ready, showError]);
+
   const isPublicRoute = location.pathname === "/explore" || location.pathname.startsWith("/shared/");
   if (isPublicRoute) {
     return <Routes><Route path="/explore" element={<ExplorePage />} /><Route path="/shared/:slug" element={<PublicExperiencePage />} /></Routes>;
@@ -134,13 +140,15 @@ export default function App() {
       >
         {content}
       </AppShell>
-      <DomainIntelligenceDialog key={inExperiences ? "experiences" : "diary"} open={intelligenceOpen} title={inExperiences ? "Experience intelligence" : "Diary intelligence"} description={inExperiences ? "See coverage, unfinished stories and sharing readiness without exposing your story text." : "Reflect on consistency and self-ratings without turning personal writing into a diagnosis."} date={inExperiences ? manager.today : manager.selectedDate} load={inExperiences ? experienceApi.analyze : diaryApi.analyze} refresh={inExperiences ? experienceApi.refreshAnalysis : diaryApi.refreshAnalysis} onClose={() => setIntelligenceOpen(false)} />
+      <DomainIntelligenceDialog revision={inExperiences ? experienceManager.experiences : manager.entries} key={inExperiences ? "experiences" : "diary"} open={intelligenceOpen} title={inExperiences ? "Experience intelligence" : "Diary intelligence"} description={inExperiences ? "See coverage, unfinished stories and sharing readiness without exposing your story text." : "Reflect on consistency and self-ratings without turning personal writing into a diagnosis."} date={inExperiences ? manager.today : manager.selectedDate} load={inExperiences ? experienceApi.analyze : diaryApi.analyze} refresh={inExperiences ? experienceApi.refreshAnalysis : diaryApi.refreshAnalysis} onClose={() => setIntelligenceOpen(false)} />
       <AiDiaryCaptureModal
         open={aiCaptureOpen}
         initialDate={manager.selectedDate || manager.today}
+        targetDomain={inExperiences ? 'EXPERIENCE' : 'DIARY'}
         onClose={() => setAiCaptureOpen(false)}
         onSuccess={(msg) => {
           manager.retry();
+          experienceManager.retry();
           setToast({ tone: "success", message: msg });
         }}
       />

@@ -18,6 +18,7 @@ export default function AiMemorySearchDialog({ open, onClose, onSelectDate }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const inputRef = useRef(null);
+  const sequence = useRef(0);
 
   useEffect(() => {
     if (open) {
@@ -30,7 +31,9 @@ export default function AiMemorySearchDialog({ open, onClose, onSelectDate }) {
   }, [open]);
 
   useEffect(() => {
-    if (!query.trim()) {
+    const request = ++sequence.current;
+    if (!open || !query.trim()) {
+      setLoading(false);
       setResults([]);
       return;
     }
@@ -39,16 +42,16 @@ export default function AiMemorySearchDialog({ open, onClose, onSelectDate }) {
       setError("");
       try {
         const domains = selectedDomain === "ALL" ? undefined : [selectedDomain];
-        const res = await memoryApi.search({ query: query.trim(), domains, limit: 12 });
-        setResults(res?.results || []);
+        const res = await memoryApi.search({ query: query.trim(), domains, limit: 10 });
+        if (sequence.current === request) setResults(Array.isArray(res) ? res : res?.results || []);
       } catch (err) {
-        setError(err?.message || "Search failed.");
+        if (sequence.current === request) setError(err?.message || "Search failed.");
       } finally {
-        setLoading(false);
+        if (sequence.current === request) setLoading(false);
       }
     }, 300);
-    return () => clearTimeout(timer);
-  }, [query, selectedDomain]);
+    return () => { clearTimeout(timer); sequence.current++; };
+  }, [open, query, selectedDomain]);
 
   if (!open) return null;
 
@@ -68,7 +71,7 @@ export default function AiMemorySearchDialog({ open, onClose, onSelectDate }) {
               <Sparkles size={20} />
             </span>
             <h2 id="ai-diary-search-title" style={{ fontSize: "1.125rem", fontWeight: 700 }}>
-              AI Vector Memory Search
+              Personal memory search
             </h2>
           </div>
           <button className="icon-button" type="button" onClick={onClose} aria-label="Close dialog">
@@ -119,9 +122,9 @@ export default function AiMemorySearchDialog({ open, onClose, onSelectDate }) {
           {!query.trim() && (
             <div style={{ textAlign: "center", padding: "2.5rem 1rem", color: "var(--text-tertiary, #94a3b8)" }}>
               <Database size={32} style={{ margin: "0 auto 0.75rem", opacity: 0.5 }} />
-              <p style={{ fontWeight: 600, color: "var(--text-secondary, #475569)", marginBottom: "0.25rem" }}>Semantic Vector Search</p>
+              <p style={{ fontWeight: 600, color: "var(--text-secondary, #475569)", marginBottom: "0.25rem" }}>Personal memory search</p>
               <p style={{ fontSize: "0.8125rem", maxWidth: "26rem", margin: "0 auto" }}>
-                Recall moments and reflections using natural language queries powered by Gemini 1536-dimensional embeddings.
+                Recall moments and reflections using natural language queries powered by semantic search when configured, with keyword search as a fallback.
               </p>
             </div>
           )}
@@ -132,11 +135,11 @@ export default function AiMemorySearchDialog({ open, onClose, onSelectDate }) {
             </div>
           )}
 
-          {results.map((res) => {
-            const dateStr = res.entityDate || res.createdAt?.slice(0, 10);
+          {results.map((res, index) => {
+            const dateStr = res.metadata?.entryDate || res.occurredAt?.slice(0, 10) || res.entityDate || res.createdAt?.slice(0, 10);
             return (
               <div
-                key={res.id || `${res.domain}-${res.entityId}`}
+                key={res.id || `${res.sourceType}-${res.sourceId}`}
                 style={{
                   background: "var(--surface-2, #f8fafc)",
                   border: "1px solid var(--border-subtle, #e2e8f0)",
@@ -146,6 +149,13 @@ export default function AiMemorySearchDialog({ open, onClose, onSelectDate }) {
                   flexDirection: "column",
                   gap: "0.5rem",
                   cursor: dateStr && onSelectDate ? "pointer" : "default",
+                }}
+                role={dateStr && onSelectDate ? "button" : undefined}
+                tabIndex={dateStr && onSelectDate ? 0 : undefined}
+                onKeyDown={event => {
+                  if (dateStr && onSelectDate && (event.key === "Enter" || event.key === " ")) {
+                    event.preventDefault(); onSelectDate(dateStr); onClose();
+                  }
                 }}
                 onClick={() => {
                   if (dateStr && onSelectDate) {
@@ -162,11 +172,11 @@ export default function AiMemorySearchDialog({ open, onClose, onSelectDate }) {
                         fontWeight: 700,
                         padding: "0.15rem 0.5rem",
                         borderRadius: "0.25rem",
-                        background: res.domain === "DIARY" ? "var(--accent-soft, #eff6ff)" : "var(--border-subtle, #e2e8f0)",
-                        color: res.domain === "DIARY" ? "var(--accent-strong, #3b82f6)" : "var(--text-primary, #0f172a)",
+                        background: res.sourceType === "DIARY" ? "var(--accent-soft, #eff6ff)" : "var(--border-subtle, #e2e8f0)",
+                        color: res.sourceType === "DIARY" ? "var(--accent-strong, #3b82f6)" : "var(--text-primary, #0f172a)",
                       }}
                     >
-                      {res.domain}
+                      {res.sourceType}
                     </span>
                     {dateStr && (
                       <span style={{ fontSize: "0.75rem", color: "var(--text-tertiary, #94a3b8)", display: "flex", alignItems: "center", gap: 3 }}>
@@ -174,9 +184,9 @@ export default function AiMemorySearchDialog({ open, onClose, onSelectDate }) {
                       </span>
                     )}
                   </div>
-                  {res.similarityScore != null && (
+                  {res.score != null && (
                     <span style={{ fontSize: "0.6875rem", color: "var(--text-tertiary, #94a3b8)", fontWeight: 600 }}>
-                      Match: {Math.round(res.similarityScore * 100)}%
+                      Relevance rank: {index + 1}
                     </span>
                   )}
                 </div>

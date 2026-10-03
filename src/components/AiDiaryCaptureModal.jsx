@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Camera, Sparkles, X, Loader2, BookHeart } from "lucide-react";
 import { captureApi } from "../api/captures";
 
-export default function AiDiaryCaptureModal({ open, onClose, onSuccess, initialDate }) {
+export default function AiDiaryCaptureModal({ open, onClose, onSuccess, initialDate, targetDomain = 'DIARY' }) {
   const [content, setContent] = useState("");
   const [date, setDate] = useState(initialDate || new Date().toISOString().slice(0, 10));
   const [files, setFiles] = useState([]);
@@ -46,7 +46,7 @@ export default function AiDiaryCaptureModal({ open, onClose, onSuccess, initialD
         sourceType: files.length > 0 ? "IMAGE" : "TEXT",
         captureDate: date,
         metadata: {
-          targetDomain: "DIARY",
+          targetDomain,
           autoOrganize: true,
         },
       };

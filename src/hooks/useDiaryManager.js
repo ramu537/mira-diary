@@ -9,6 +9,12 @@ export function useDiaryManager(user = null) {
   const timers = useRef(new Map());
   const versions = useRef(new Map());
   const queues = useRef(new Map());
+  const serverRevisions = useRef(new Map());
+  const conflicts = useRef(new Set());
+  const unsaved = useRef(new Set());
+  const uid = user?.uid || null;
+  const activeUser = useRef(uid);
+  activeUser.current = uid;
   const requestSequence = useRef(0);
   const [entries, setEntries] = useState([]);
   const [selectedDate, setSelectedDate] = useState(today);
@@ -32,47 +38,70 @@ export function useDiaryManager(user = null) {
   }, [replaceEntries]);
 
   const enqueue = useCallback((date, operation) => {
+    const owner = uid;
     const previous = queues.current.get(date) || Promise.resolve();
-    const queued = previous.catch(() => undefined).then(operation);
+    const queued = previous.catch(() => undefined).then(() => {
+      if (!owner || activeUser.current !== owner) throw new Error("The signed-in account changed.");
+      return operation();
+    });
     queues.current.set(date, queued);
     const clean = () => { if (queues.current.get(date) === queued) queues.current.delete(date); };
     queued.then(clean, clean);
     return queued;
-  }, []);
+  }, [uid]);
 
   const persist = useCallback(async (entry, version) => {
+    const owner = uid;
     try {
-      const saved = await enqueue(entry.entryDate, () => diaryApi.save(entry.entryDate, entryPayload(entry)));
+      const saved = await enqueue(entry.entryDate, async () => {
+        if (conflicts.current.has(entry.entryDate)) throw new Error("This reflection changed elsewhere. Copy your draft before reloading.");
+        const saved = await diaryApi.save(entry.entryDate, { ...entryPayload(entry), expectedUpdatedAt: serverRevisions.current.get(entry.entryDate) || entry.updatedAt || null });
+        if (activeUser.current === uid) serverRevisions.current.set(entry.entryDate, saved.updatedAt);
+        return saved;
+      });
+      if (activeUser.current !== owner) return saved;
       if (versions.current.get(entry.entryDate) === version) {
+        unsaved.current.delete(entry.entryDate);
         mergeEntry(saved);
         setSaveStates((current) => ({ ...current, [entry.entryDate]: "Saved" }));
       }
       return saved;
     } catch (error) {
+      if (activeUser.current !== uid) throw error;
+      if (error.status === 409) conflicts.current.add(entry.entryDate);
       if (versions.current.get(entry.entryDate) === version) {
         setSaveStates((current) => ({ ...current, [entry.entryDate]: "Save failed" }));
       }
       throw error;
     }
-  }, [enqueue, mergeEntry]);
+  }, [enqueue, mergeEntry, uid]);
 
   const load = useCallback(async () => {
+    if (!uid) return;
     const requestId = ++requestSequence.current;
     setLoading(true);
     setLoadError("");
     try {
       const result = await diaryApi.list(shiftDate(today, -1825), today);
-      if (requestId !== requestSequence.current) return;
-      replaceEntries(Array.isArray(result) ? result : []);
+      if (requestId !== requestSequence.current || activeUser.current !== uid) return;
+      const loaded = Array.isArray(result) ? result : [];
+      loaded.forEach(entry => { if (!(conflicts.current.has(entry.entryDate) || unsaved.current.has(entry.entryDate))) serverRevisions.current.set(entry.entryDate, entry.updatedAt); });
+      replaceEntries(loaded.map(entry => (conflicts.current.has(entry.entryDate) || unsaved.current.has(entry.entryDate)) ? entriesRef.current.find(item => item.entryDate === entry.entryDate) || entry : entry).concat(entriesRef.current.filter(item => unsaved.current.has(item.entryDate) && !loaded.some(saved => saved.entryDate === item.entryDate))));
       setReady(true);
     } catch (error) {
-      if (requestId === requestSequence.current) setLoadError(error.message);
+      if (requestId === requestSequence.current && activeUser.current === uid) setLoadError(error.message);
     } finally {
-      if (requestId === requestSequence.current) setLoading(false);
+      if (requestId === requestSequence.current && activeUser.current === uid) setLoading(false);
     }
-  }, [replaceEntries, today]);
+  }, [replaceEntries, today, uid]);
 
   useEffect(() => {
+    timers.current.forEach(timer => window.clearTimeout(timer));
+    timers.current.clear(); queues.current.clear(); versions.current.clear();
+    serverRevisions.current.clear(); conflicts.current.clear(); unsaved.current.clear();
+    replaceEntries([]);
+    setSaveStates({});
+    setReady(false);
     if (!user) {
       setEntries([]);
       setReady(false);
@@ -86,24 +115,27 @@ export function useDiaryManager(user = null) {
       timers.current.forEach((timer) => window.clearTimeout(timer));
       timers.current.clear();
     };
-  }, [load, user]);
+  }, [load, uid]);
 
   useEffect(() => {
     if (!user) return undefined;
     const sync = () => {
-      if (document.visibilityState === "visible" && timers.current.size === 0 && queues.current.size === 0) void load();
+      if (document.visibilityState === "visible" && timers.current.size === 0 && queues.current.size === 0 && unsaved.current.size === 0) void load();
     };
+    const timer = window.setInterval(sync, 30000);
     window.addEventListener("focus", sync);
     document.addEventListener("visibilitychange", sync);
     return () => {
+      window.clearInterval(timer);
       window.removeEventListener("focus", sync);
       document.removeEventListener("visibilitychange", sync);
     };
-  }, [user, load]);
+  }, [uid, load]);
 
   const updateEntry = useCallback((date, patch, onError) => {
     const current = entriesRef.current.find((entry) => entry.entryDate === date) || blankEntry(date);
     const next = { ...current, ...patch };
+    unsaved.current.add(date);
     mergeEntry(next);
     const version = (versions.current.get(date) || 0) + 1;
     versions.current.set(date, version);
@@ -116,7 +148,7 @@ export function useDiaryManager(user = null) {
   }, [mergeEntry, persist]);
 
   const flushEntry = useCallback((date, onError) => {
-    if (!timers.current.has(date)) return;
+    if (!timers.current.has(date) && !unsaved.current.has(date)) return;
     window.clearTimeout(timers.current.get(date));
     timers.current.delete(date);
     const entry = entriesRef.current.find((item) => item.entryDate === date);
@@ -130,13 +162,17 @@ export function useDiaryManager(user = null) {
   }, [flushEntry, selectedDate, today]);
 
   const deleteEntry = useCallback(async (date) => {
+    const owner = uid;
     setDeleting(true);
     window.clearTimeout(timers.current.get(date));
     timers.current.delete(date);
     versions.current.set(date, (versions.current.get(date) || 0) + 1);
     try {
       await (queues.current.get(date) || Promise.resolve()).catch(() => undefined);
+      if (activeUser.current !== owner) return;
       await diaryApi.remove(date);
+      if (activeUser.current !== owner) return;
+      unsaved.current.delete(date); conflicts.current.delete(date); serverRevisions.current.delete(date);
       replaceEntries(entriesRef.current.filter((entry) => entry.entryDate !== date));
       setSaveStates((current) => {
         const next = { ...current };
@@ -146,7 +182,7 @@ export function useDiaryManager(user = null) {
     } finally {
       setDeleting(false);
     }
-  }, [replaceEntries]);
+  }, [replaceEntries, uid]);
 
   const currentEntry = entries.find((entry) => entry.entryDate === selectedDate) || blankEntry(selectedDate);
   return {

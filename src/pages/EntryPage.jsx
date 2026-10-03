@@ -34,6 +34,7 @@ export default function EntryPage({ entry, entries, selectedDate, today, saveSta
     <div className="writing-layout">
       <section className="reflection-column">
         <div className="prompt-card"><span>Reflection prompt</span><p>{entry.prompt}</p><button type="button" onClick={() => onChange({ prompt: diaryPrompts[(currentPromptIndex + 1 + diaryPrompts.length) % diaryPrompts.length] })}><RefreshCw size={15} />Another</button></div>
+        <label className="ai-privacy-control"><input type="checkbox" checked={Boolean(entry.aiContentAllowed)} onChange={event => onChange({ aiContentAllowed: event.target.checked })} /><span>Allow AI to use this reflection’s writing</span><small>Off by default. Enabling also allows semantic embeddings; ratings and coverage still work without it.</small></label>
         <label className="writing-card panel"><span className="sr-only">Diary entry</span><textarea maxLength="100000" spellCheck="true" placeholder="Write the day as it happened. A few honest lines are enough." value={entry.content} onChange={(event) => onChange({ content: event.target.value })} onBlur={onFlush} /><footer><span>{words.toLocaleString()} {words === 1 ? "word" : "words"}</span><small>Saved privately through your existing diary service</small></footer></label>
       </section>
       <aside className="entry-sidebar">
